@@ -23,10 +23,12 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:2333',
+      baseURL:
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        "https://api-chenpilot.safellms.com",
       timeout: 30000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 

@@ -2,7 +2,7 @@
 
 export const env = {
   // API Configuration
-  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:2333',
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-chenpilot.safellms.com',
   
   // Google OAuth
   GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
