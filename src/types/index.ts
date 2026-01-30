@@ -7,19 +7,22 @@ export interface User {
   publicKey: string;
   isDeployed: boolean;
   isFunded: boolean;
-  tokenType: "STRK";
+  tokenType: "XLM";
   authProvider: "email" | "google";
   isEmailVerified: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface StarknetAccountInfo {
+export interface StellarAccountInfo {
   address: string;
   publicKey: string;
   isDeployed: boolean;
   deploymentTransactionHash?: string;
 }
+
+// Keep for backward compatibility
+export type StarknetAccountInfo = StellarAccountInfo;
 
 export interface AccountStatus {
   isDeployed: boolean;
@@ -49,7 +52,8 @@ export interface RegisterResponse {
   data: {
     user: User;
     token: string;
-    starknetAccount: StarknetAccountInfo;
+    stellarAccount: StellarAccountInfo;
+    starknetAccount: StellarAccountInfo; // Alias for backward compatibility
     setupStatus: {
       funding: {
         success: boolean;
@@ -73,7 +77,8 @@ export interface LoginResponse {
   data: {
     user: User;
     token: string;
-    starknetAccount: StarknetAccountInfo;
+    stellarAccount: StellarAccountInfo;
+    starknetAccount: StellarAccountInfo; // Alias for backward compatibility
   };
 }
 
@@ -82,7 +87,7 @@ export interface Contact {
   id: string;
   name: string;
   address: string;
-  tokenType: "STRK" | "ETH" | "DAI";
+  tokenType: "XLM" | "USDC" | "USDT" | "BTC" | "ETH";
   createdAt: string;
   updatedAt: string;
 }
@@ -90,13 +95,13 @@ export interface Contact {
 export interface CreateContactRequest {
   name: string;
   address: string;
-  tokenType: "STRK" | "ETH" | "DAI";
+  tokenType: "XLM" | "USDC" | "USDT" | "BTC" | "ETH";
 }
 
 export interface UpdateContactRequest {
   name?: string;
   address?: string;
-  tokenType?: "STRK" | "ETH" | "DAI";
+  tokenType?: "XLM" | "USDC" | "USDT" | "BTC" | "ETH";
 }
 
 // Balance and Wallet Types
@@ -350,7 +355,7 @@ export interface CardProps {
 }
 
 // Utility Types
-export type TokenType = "STRK" | "ETH" | "DAI" | "USDC" | "WBTC";
+export type TokenType = "XLM" | "USDC" | "USDT" | "BTC" | "ETH" | "AQUA";
 export type AuthProvider = "email" | "google";
 export type MessageType = "user" | "agent" | "system";
 export type NotificationType = "success" | "error" | "warning" | "info";

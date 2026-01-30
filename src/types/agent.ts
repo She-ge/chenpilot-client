@@ -28,10 +28,10 @@ export interface AgentStatus {
   lastActivity: string;
   activeConnections: number;
   services: {
-    vesu: ServiceStatus;
-    atomiq: ServiceStatus;
-    xverse: ServiceStatus;
-    troves: ServiceStatus;
+    soroswap: ServiceStatus;
+    blend: ServiceStatus;
+    aquarius: ServiceStatus;
+    phoenix: ServiceStatus;
     database: ServiceStatus;
   };
 }

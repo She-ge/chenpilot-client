@@ -272,7 +272,7 @@ export default function ContactsPage() {
           
           <Input
             label="Address"
-            placeholder="Enter Starknet address"
+            placeholder="Enter Stellar address"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
             required
@@ -325,7 +325,7 @@ export default function ContactsPage() {
           
           <Input
             label="Address"
-            placeholder="Enter Starknet address"
+            placeholder="Enter Stellar address"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
             required

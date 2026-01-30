@@ -119,10 +119,10 @@ class AgentService {
       lastActivity: new Date().toISOString(),
       activeConnections: 1,
       services: {
-        vesu: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
-        atomiq: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
-        xverse: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
-        troves: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
+        soroswap: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
+        blend: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
+        aquarius: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
+        phoenix: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() },
         database: { isActive: true, isHealthy: true, lastCheck: new Date().toISOString() }
       }
     };
@@ -136,13 +136,14 @@ class AgentService {
     // we'll return the capabilities based on the intent agent
     return {
       supportedActions: [
-        'lend', 'borrow', 'withdraw', 'repay', 'check_balance', 'get_apy',
+        'transfer_xlm', 'swap', 'lend', 'borrow', 'withdraw', 'repay', 'check_balance', 'get_apy',
         'health_check', 'liquidate', 'claim_rewards', 'add_collateral',
         'remove_collateral', 'deposit_vault', 'withdraw_vault', 'get_vaults',
-        'get_vault_positions', 'harvest_vault', 'get_strategies'
+        'get_vault_positions', 'harvest_vault', 'get_strategies', 'swap_stellar_dex',
+        'add_liquidity', 'remove_liquidity'
       ],
-      supportedAssets: ['ETH', 'STRK', 'USDC', 'USDT', 'WBTC'],
-      supportedProtocols: ['Vesu', 'Atomiq', 'XVerse', 'Troves'],
+      supportedAssets: ['XLM', 'USDC', 'USDT', 'BTC', 'ETH', 'AQUA'],
+      supportedProtocols: ['Soroswap', 'Blend', 'Aquarius', 'Phoenix'],
       features: {
         defi: true,
         crossChain: true,

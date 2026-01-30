@@ -18,28 +18,31 @@ export const APP_CONFIG = {
 
 // Token Types
 export const TOKEN_TYPES = {
-  STRK: 'STRK',
-  ETH: 'ETH',
-  DAI: 'DAI',
+  XLM: 'XLM',
   USDC: 'USDC',
-  WBTC: 'WBTC',
+  USDT: 'USDT',
+  BTC: 'BTC',
+  ETH: 'ETH',
+  AQUA: 'AQUA',
 } as const;
 
 export const TOKEN_DISPLAY_NAMES = {
-  [TOKEN_TYPES.STRK]: 'Starknet Token',
-  [TOKEN_TYPES.ETH]: 'Ethereum',
-  [TOKEN_TYPES.DAI]: 'Dai Stablecoin',
+  [TOKEN_TYPES.XLM]: 'Stellar Lumens',
   [TOKEN_TYPES.USDC]: 'USD Coin',
-  [TOKEN_TYPES.WBTC]: 'Wrapped Bitcoin',
+  [TOKEN_TYPES.USDT]: 'Tether USD',
+  [TOKEN_TYPES.BTC]: 'Bitcoin',
+  [TOKEN_TYPES.ETH]: 'Ethereum',
+  [TOKEN_TYPES.AQUA]: 'Aquarius Token',
 } as const;
 
 // Token Decimals
 export const TOKEN_DECIMALS = {
-  [TOKEN_TYPES.STRK]: 18,
-  [TOKEN_TYPES.ETH]: 18,
-  [TOKEN_TYPES.DAI]: 18,
-  [TOKEN_TYPES.USDC]: 6,
-  [TOKEN_TYPES.WBTC]: 8,
+  [TOKEN_TYPES.XLM]: 7,
+  [TOKEN_TYPES.USDC]: 7,
+  [TOKEN_TYPES.USDT]: 7,
+  [TOKEN_TYPES.BTC]: 7,
+  [TOKEN_TYPES.ETH]: 7,
+  [TOKEN_TYPES.AQUA]: 7,
 } as const;
 
 // UI Constants
@@ -65,7 +68,7 @@ export const THEME_COLORS = {
     800: '#075985',
     900: '#0c4a6e',
   },
-  STARKNET: {
+  STELLAR: {
     50: '#f8fafc',
     100: '#f1f5f9',
     200: '#e2e8f0',
@@ -142,7 +145,7 @@ export const AGENT_CAPABILITIES = [
   {
     category: 'Trading Operations',
     commands: [
-      'Swap 0.1 STRK to ETH',
+      'Swap 100 USDC to XLM',
       'Show swap rates',
       'Execute trade',
     ],
@@ -152,7 +155,7 @@ export const AGENT_CAPABILITIES = [
     commands: [
       'Can you help me understand how to transfer tokens?',
       'How do I deploy my account?',
-      'What is Starknet?',
+      'What is Stellar?',
     ],
   },
 ] as const;
@@ -162,7 +165,7 @@ export const VALIDATION_MESSAGES = {
   REQUIRED: 'This field is required',
   EMAIL_INVALID: 'Please enter a valid email address',
   PASSWORD_WEAK: 'Password must be at least 8 characters with uppercase, lowercase, and number',
-  ADDRESS_INVALID: 'Please enter a valid Starknet address',
+  ADDRESS_INVALID: 'Please enter a valid Stellar address',
   AMOUNT_INVALID: 'Please enter a valid amount',
   PASSWORDS_MISMATCH: "Passwords don't match",
   NAME_TOO_SHORT: 'Name must be at least 2 characters',

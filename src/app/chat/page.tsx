@@ -303,10 +303,10 @@ function ChatPageContent() {
 
 
   const agentTools = [
-    { name: 'Atomiq', description: 'DeFi protocol integration', icon: Zap },
-    { name: 'Vesu', description: 'Lending and borrowing platform', icon: DollarSign },
-    { name: 'Xverse', description: 'Bitcoin wallet integration', icon: Bitcoin },
-    { name: 'Troves', description: 'Cross-chain asset management', icon: Building2 }
+    { name: 'Soroswap', description: 'Stellar DEX for token swaps', icon: Zap },
+    { name: 'Blend', description: 'Lending and borrowing protocol', icon: DollarSign },
+    { name: 'Aquarius', description: 'Liquidity pool management', icon: Bitcoin },
+    { name: 'Phoenix', description: 'Advanced DeFi operations', icon: Building2 }
   ];
 
   const handleToolSelect = (toolName: string) => {
@@ -320,9 +320,9 @@ function ChatPageContent() {
   const suggestedQueries = [
     { text: "What is my current wallet balance?", icon: DollarSign },
     { text: "Show me my recent transactions", icon: Clock },
-    { text: "How do I deploy my Starknet account?", icon: Zap },
+    { text: "How do I deploy my Stellar account?", icon: Zap },
     { text: "Create a new contact", icon: Copy },
-    { text: "Swap 100k sats to STRK and lend it on Vesu", icon: Building2 }
+    { text: "Swap 100 USDC to XLM and lend it on Blend", icon: Building2 }
   ];
 
 
@@ -507,9 +507,9 @@ function ChatPageContent() {
                     {[
                       "Check wallet balance",
                       "Recent transactions",
-                      "Deploy Starknet account",
+                      "Deploy Stellar account",
                       "Create contact",
-                      "Swap sats to STRK",
+                      "Swap USDC to XLM",
                       "Bitcoin price"
                     ].map((question, index) => (
                       <button

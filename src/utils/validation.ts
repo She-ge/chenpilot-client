@@ -20,11 +20,14 @@ export const nameSchema = z
   .min(2, 'Name must be at least 2 characters')
   .max(50, 'Name must be less than 50 characters');
 
-// Starknet address validation schema
-export const starknetAddressSchema = z
+// Stellar address validation schema
+export const stellarAddressSchema = z
   .string()
   .min(1, 'Address is required')
-  .regex(/^0x[0-9a-fA-F]{63,64}$/, 'Please enter a valid Starknet address');
+  .regex(/^G[A-Z0-9]{55}$/, 'Please enter a valid Stellar address');
+
+// Keep for backward compatibility
+export const starknetAddressSchema = stellarAddressSchema;
 
 // Token amount validation schema
 export const tokenAmountSchema = z
@@ -36,16 +39,16 @@ export const tokenAmountSchema = z
 // Contact validation schemas
 export const createContactSchema = z.object({
   name: nameSchema,
-  address: starknetAddressSchema,
-  tokenType: z.enum(['STRK', 'ETH', 'DAI'], {
+  address: stellarAddressSchema,
+  tokenType: z.enum(['XLM', 'USDC', 'USDT', 'BTC', 'ETH'], {
     required_error: 'Please select a token type',
   }),
 });
 
 export const updateContactSchema = z.object({
   name: nameSchema.optional(),
-  address: starknetAddressSchema.optional(),
-  tokenType: z.enum(['STRK', 'ETH', 'DAI']).optional(),
+  address: stellarAddressSchema.optional(),
+  tokenType: z.enum(['XLM', 'USDC', 'USDT', 'BTC', 'ETH']).optional(),
 });
 
 // Authentication schemas
@@ -111,14 +114,17 @@ export const validatePassword = (password: string): boolean => {
   }
 };
 
-export const validateStarknetAddress = (address: string): boolean => {
+export const validateStellarAddress = (address: string): boolean => {
   try {
-    starknetAddressSchema.parse(address);
+    stellarAddressSchema.parse(address);
     return true;
   } catch {
     return false;
   }
 };
+
+// Keep for backward compatibility
+export const validateStarknetAddress = validateStellarAddress;
 
 export const validateTokenAmount = (amount: string): boolean => {
   try {
