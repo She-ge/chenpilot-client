@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { 
   RegisterRequest, 
   LoginRequest, 
@@ -12,8 +12,6 @@ import {
   AgentQueryRequest,
   AgentQueryResponse,
   ApiResponse,
-  ChatMessage,
-  Conversation
 } from '@/types';
 import agentService from './agentService';
 
@@ -103,8 +101,8 @@ class ApiService {
     
     const response = await this.api.post<RegisterResponse>('/auth/register', data);
     // Persist token on successful registration to keep the user authenticated
-    if (response.data?.success && (response.data as any)?.data?.token) {
-      this.setToken((response.data as any).data.token);
+    if (response.data?.success && response.data.data?.token) {
+      this.setToken(response.data.data.token);
     }
     return response.data;
   }
@@ -161,7 +159,7 @@ class ApiService {
   async logout(): Promise<void> {
     try {
       await this.api.post('/auth/logout');
-    } catch (error) {
+    } catch {
       // Even if logout fails on server, clear local token
       console.warn('Logout request failed, clearing local token anyway');
     } finally {
@@ -192,6 +190,29 @@ class ApiService {
     const response = await this.api.delete<ApiResponse<{ message: string }>>('/auth/account');
     this.clearToken();
     return response.data;
+  }
+
+  async exportUserData(): Promise<Blob> {
+    const endpoints = ['/data-export', '/data/export', '/api/data-export'];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await this.api.get<Blob>(endpoint, {
+          responseType: 'blob',
+        });
+
+        if (response.status === 200 && response.data) {
+          return response.data;
+        }
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          continue; // try next endpoint
+        }
+        throw error;
+      }
+    }
+
+    throw new Error('User data export endpoint not found.');
   }
 
   // Starknet account management
@@ -237,8 +258,8 @@ class ApiService {
     try {
       const response = await this.api.get<ApiResponse<Contact[]>>('/contacts');
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: true,
@@ -254,8 +275,8 @@ class ApiService {
     try {
       const response = await this.api.post<ApiResponse<Contact>>('/contacts', data);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -271,8 +292,8 @@ class ApiService {
     try {
       const response = await this.api.put<ApiResponse<Contact>>(`/contacts/${id}`, data);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -288,8 +309,8 @@ class ApiService {
     try {
       const response = await this.api.delete<ApiResponse<{ message: string }>>(`/contacts/${id}`);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -309,7 +330,7 @@ class ApiService {
         console.log('[ApiService] Using experimental agent service');
         return await agentService.queryAgent(data);
       }
-    } catch (error) {
+    } catch {
       console.warn('[ApiService] Experimental agent service failed, falling back to backend');
     }
 
@@ -332,12 +353,28 @@ class ApiService {
           error: undefined
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ApiService] Backend query failed:', error);
       // Convert technical errors to user-friendly messages
       let friendlyMessage = 'Query failed. Please try again.';
-      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
-      
+
+      const errorMsg = axios.isAxiosError(error)
+        ? (() => {
+          const responseData = error.response?.data;
+          if (
+            responseData &&
+            typeof responseData === 'object' &&
+            'message' in responseData &&
+            typeof (responseData as Record<string, unknown>).message === 'string'
+          ) {
+            return (responseData as Record<string, unknown>).message as string;
+          }
+          return error.message || 'Unknown error';
+        })()
+        : error instanceof Error
+          ? error.message
+          : String(error);
+
       if (errorMsg.includes('invalid query')) {
         friendlyMessage = "I didn't understand that. Could you please rephrase your question?";
       } else if (errorMsg.includes('timeout')) {
@@ -345,7 +382,7 @@ class ApiService {
       } else if (errorMsg.includes('network')) {
         friendlyMessage = "I'm having trouble connecting. Please check your internet connection and try again.";
       }
-      
+
       return {
         result: {
           success: false,
@@ -427,7 +464,7 @@ class ApiService {
     }
   }
 
-  async executeAgentTool(toolName: string, params: any) {
+  async executeAgentTool(toolName: string, params: Record<string, unknown>) {
     try {
       return await agentService.executeTool(toolName, params);
     } catch (error) {
