@@ -13,7 +13,10 @@ import {
   AgentQueryResponse,
   ApiResponse,
   ChatMessage,
-  Conversation
+  Conversation,
+  LiquidityPool,
+  LiquidityStats,
+  LiquidityRequest
 } from '@/types';
 import agentService from './agentService';
 import { tokenRefreshService } from './tokenRefreshService';
@@ -511,6 +514,12 @@ class ApiService {
 
   async getConversationStats(): Promise<ApiResponse<{ totalConversations: number; totalMessages: number; activeConversations: number }>> {
     const response = await this.api.get<ApiResponse<{ totalConversations: number; totalMessages: number; activeConversations: number }>>('/chat/stats');
+    return response.data;
+  }
+
+  // Liquidity Pool endpoints
+  async getLiquidityStats(request?: LiquidityRequest): Promise<ApiResponse<LiquidityStats>> {
+    const response = await this.api.post<ApiResponse<LiquidityStats>>('/liquidity', request || {});
     return response.data;
   }
 

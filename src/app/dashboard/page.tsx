@@ -21,12 +21,14 @@ import {
   ShieldCheck,
   Wallet,
   Coins,
-  Zap
+  Zap,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  Droplets
 } from 'lucide-react';
 import { formatAddress, formatTokenAmount } from '@/utils/format';
 import toast from 'react-hot-toast';
+import LiquidityPoolStats from '@/components/widgets/LiquidityPoolStats';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -312,6 +314,23 @@ export default function DashboardPage() {
                 </Card>
               ))}
             </div>
+          </div>
+
+          {/* Liquidity Pool Stats */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white flex items-center">
+                <Droplets className="mr-2 h-6 w-6 text-blue-400" />
+                Liquidity Pool Statistics
+              </h2>
+              <div className="flex items-center space-x-2 bg-gray-900/50 px-3 py-1.5 rounded-full border border-gray-800">
+                <Activity className="h-4 w-4 text-green-400" />
+                <span className="text-xs font-medium text-gray-300">
+                  Live Data
+                </span>
+              </div>
+            </div>
+            <LiquidityPoolStats />
           </div>
 
           {/* Recent Activity */}
