@@ -17,6 +17,7 @@ import {
   LiquidityPool,
   LiquidityStats,
   LiquidityRequest
+  StellarTransaction
 } from '@/types';
 import agentService from './agentService';
 import { tokenRefreshService } from './tokenRefreshService';
@@ -281,6 +282,14 @@ class ApiService {
 
   async batchFund(amounts: string[]): Promise<ApiResponse<{ transactionHashes: string[]; totalAmount: string }>> {
     const response = await this.api.post<ApiResponse<{ transactionHashes: string[]; totalAmount: string }>>('/auth/funding/batch-fund', { amounts });
+    return response.data;
+  }
+
+  // Account transaction endpoints
+  async getAccountTransactions(userId: string, page: number = 1, limit: number = 10): Promise<ApiResponse<{ transactions: StellarTransaction[]; total: number; page: number; limit: number }>> {
+    const response = await this.api.get<ApiResponse<{ transactions: StellarTransaction[]; total: number; page: number; limit: number }>>(`/account/${userId}/transactions`, {
+      params: { page, limit }
+    });
     return response.data;
   }
 
