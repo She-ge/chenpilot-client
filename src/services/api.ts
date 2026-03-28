@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { 
   RegisterRequest, 
   LoginRequest, 
@@ -12,8 +12,6 @@ import {
   AgentQueryRequest,
   AgentQueryResponse,
   ApiResponse,
-  ChatMessage,
-  Conversation
 } from '@/types';
 import agentService from './agentService';
 import { tokenRefreshService } from './tokenRefreshService';
@@ -134,8 +132,8 @@ class ApiService {
     
     const response = await this.api.post<RegisterResponse>('/auth/register', data);
     // Persist token on successful registration to keep the user authenticated
-    if (response.data?.success && (response.data as any)?.data?.token) {
-      this.setToken((response.data as any).data.token);
+    if (response.data?.success && (response.data as { data?: { token?: string } })?.data?.token) {
+      this.setToken((response.data as { data: { token: string } }).data.token);
     }
     return response.data;
   }
@@ -192,7 +190,7 @@ class ApiService {
   async logout(): Promise<void> {
     try {
       await this.api.post('/auth/logout');
-    } catch (error) {
+    } catch {
       // Even if logout fails on server, clear local token
       console.warn('Logout request failed, clearing local token anyway');
     } finally {
@@ -220,6 +218,11 @@ class ApiService {
   }
 
   // Protected endpoints
+  async getMe(): Promise<ApiResponse<User>> {
+    const response = await this.api.get<ApiResponse<User>>('/auth/me');
+    return response.data;
+  }
+
   async getProfile(): Promise<ApiResponse<User>> {
     const response = await this.api.get<ApiResponse<User>>('/auth/profile');
     return response.data;
@@ -287,8 +290,8 @@ class ApiService {
     try {
       const response = await this.api.get<ApiResponse<Contact[]>>('/contacts');
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: true,
@@ -304,8 +307,8 @@ class ApiService {
     try {
       const response = await this.api.post<ApiResponse<Contact>>('/contacts', data);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -321,8 +324,8 @@ class ApiService {
     try {
       const response = await this.api.put<ApiResponse<Contact>>(`/contacts/${id}`, data);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -338,8 +341,8 @@ class ApiService {
     try {
       const response = await this.api.delete<ApiResponse<{ message: string }>>(`/contacts/${id}`);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -359,7 +362,7 @@ class ApiService {
         console.log('[ApiService] Using experimental agent service');
         return await agentService.queryAgent(data);
       }
-    } catch (error) {
+    } catch {
       console.warn('[ApiService] Experimental agent service failed, falling back to backend');
     }
 
@@ -382,11 +385,11 @@ class ApiService {
           error: undefined
         }
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[ApiService] Backend query failed:', error);
       // Convert technical errors to user-friendly messages
       let friendlyMessage = 'Query failed. Please try again.';
-      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      const errorMsg = (error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { message?: string }).message || 'Unknown error';
       
       if (errorMsg.includes('invalid query')) {
         friendlyMessage = "I didn't understand that. Could you please rephrase your question?";
@@ -477,7 +480,7 @@ class ApiService {
     }
   }
 
-  async executeAgentTool(toolName: string, params: any) {
+  async executeAgentTool(toolName: string, params: Record<string, unknown>) {
     try {
       return await agentService.executeTool(toolName, params);
     } catch (error) {
