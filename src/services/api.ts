@@ -138,8 +138,8 @@ class ApiService {
     
     const response = await this.api.post<RegisterResponse>('/auth/register', data);
     // Persist token on successful registration to keep the user authenticated
-    if (response.data?.success && response.data.data?.token) {
-      this.setToken(response.data.data.token);
+    if (response.data?.success && (response.data as { data?: { token?: string } })?.data?.token) {
+      this.setToken((response.data as { data: { token: string } }).data.token);
     }
     return response.data;
   }
@@ -232,6 +232,11 @@ class ApiService {
   }
 
   // Protected endpoints
+  async getMe(): Promise<ApiResponse<User>> {
+    const response = await this.api.get<ApiResponse<User>>('/auth/me');
+    return response.data;
+  }
+
   async getProfile(): Promise<ApiResponse<User>> {
     const response = await this.api.get<ApiResponse<User>>('/auth/profile');
     return response.data;
@@ -331,7 +336,7 @@ class ApiService {
       const response = await this.api.get<ApiResponse<Contact[]>>('/contacts');
       return response.data;
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: true,
@@ -348,7 +353,7 @@ class ApiService {
       const response = await this.api.post<ApiResponse<Contact>>('/contacts', data);
       return response.data;
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -365,7 +370,7 @@ class ApiService {
       const response = await this.api.put<ApiResponse<Contact>>(`/contacts/${id}`, data);
       return response.data;
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -382,7 +387,7 @@ class ApiService {
       const response = await this.api.delete<ApiResponse<{ message: string }>>(`/contacts/${id}`);
       return response.data;
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      if ((error as { response?: { status?: number } }).response?.status === 404) {
         // Contact endpoints not available in experimental backend
         return {
           success: false,
@@ -437,32 +442,16 @@ class ApiService {
       };
     } catch (error: unknown) {
       console.error('[ApiService] Backend query failed:', error);
+      // Convert technical errors to user-friendly messages
+      let friendlyMessage = 'Query failed. Please try again.';
+      const errorMsg = (error as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (error as { message?: string }).message || 'Unknown error';
       
-      let errorMsg = 'An unexpected error occurred';
-      let friendlyMessage = 'I encountered an error processing your request. Please try again.';
-
-      if (axios.isAxiosError(error)) {
-        const responseData = error.response?.data;
-        if (responseData && typeof responseData === 'object') {
-          errorMsg = responseData.message || responseData.error || error.message;
-        } else {
-          errorMsg = error.message;
-        }
-        
-        if (error.response?.status === 401) {
-          friendlyMessage = 'Your session has expired. Please log in again.';
-        } else if (error.response?.status === 429) {
-          friendlyMessage = 'You are sending too many requests. Please wait a moment and try again.';
-        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-          friendlyMessage = 'The request timed out. The agent might be busy, please try again.';
-        } else if (!error.response && error.request) {
-          friendlyMessage = "I'm having trouble reaching the server. Please check your internet connection.";
-        }
-      } else if (error instanceof Error) {
-        errorMsg = error.message;
-        if (errorMsg === 'Query cannot be empty') {
-          friendlyMessage = 'Please enter a message before sending.';
-        }
+      if (errorMsg.includes('invalid query')) {
+        friendlyMessage = "I didn't understand that. Could you please rephrase your question?";
+      } else if (errorMsg.includes('timeout')) {
+        friendlyMessage = "The request is taking longer than expected. Please try again.";
+      } else if (errorMsg.includes('network')) {
+        friendlyMessage = "I'm having trouble connecting. Please check your internet connection and try again.";
       }
 
       return {
