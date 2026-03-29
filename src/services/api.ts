@@ -386,7 +386,7 @@ class ApiService {
     }
   }
 
-  // Agent query - Enhanced with experimental agent integration
+  // Agent query - Optimized for backend integration
   async queryAgent(data: AgentQueryRequest): Promise<AgentQueryResponse> {
     // First try the experimental agent service
     try {
@@ -394,57 +394,67 @@ class ApiService {
         console.log('[ApiService] Using experimental agent service');
         return await agentService.queryAgent(data);
       }
-    } catch {
-      console.warn('[ApiService] Experimental agent service failed, falling back to backend');
+    } catch (error) {
+      console.warn('[ApiService] Experimental agent service failed, falling back to backend:', error);
     }
 
     // Fallback to backend API (experimental backend)
     try {
+      if (!data.query || data.query.trim().length === 0) {
+        throw new Error('Query cannot be empty');
+      }
+
+      console.log('[ApiService] Querying backend /query endpoint');
       const response = await this.api.post('/query', data);
       
-      // The experimental backend returns { result: ... } format
+      // The system returns response.data directly or wrapped in { result: ... }
       if (response.data && response.data.result) {
         return {
-          result: response.data.result
+          result: {
+            success: response.data.result.success ?? true,
+            data: response.data.result.data || 'Success',
+            error: response.data.result.error,
+            executionTrace: response.data.result.executionTrace
+          }
         };
       }
       
-      // Fallback if response format is unexpected
+      // Handle the case where the backend returns the result directly
       return {
         result: {
           success: true,
-          data: response.data || 'Query processed successfully',
+          data: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
           error: undefined
         }
       };
     } catch (error: unknown) {
       console.error('[ApiService] Backend query failed:', error);
-      // Convert technical errors to user-friendly messages
-      let friendlyMessage = 'Query failed. Please try again.';
+      
+      let errorMsg = 'An unexpected error occurred';
+      let friendlyMessage = 'I encountered an error processing your request. Please try again.';
 
-      const errorMsg = axios.isAxiosError(error)
-        ? (() => {
-          const responseData = error.response?.data;
-          if (
-            responseData &&
-            typeof responseData === 'object' &&
-            'message' in responseData &&
-            typeof (responseData as Record<string, unknown>).message === 'string'
-          ) {
-            return (responseData as Record<string, unknown>).message as string;
-          }
-          return error.message || 'Unknown error';
-        })()
-        : error instanceof Error
-          ? error.message
-          : String(error);
-
-      if (errorMsg.includes('invalid query')) {
-        friendlyMessage = "I didn't understand that. Could you please rephrase your question?";
-      } else if (errorMsg.includes('timeout')) {
-        friendlyMessage = "The request is taking longer than expected. Please try again.";
-      } else if (errorMsg.includes('network')) {
-        friendlyMessage = "I'm having trouble connecting. Please check your internet connection and try again.";
+      if (axios.isAxiosError(error)) {
+        const responseData = error.response?.data;
+        if (responseData && typeof responseData === 'object') {
+          errorMsg = responseData.message || responseData.error || error.message;
+        } else {
+          errorMsg = error.message;
+        }
+        
+        if (error.response?.status === 401) {
+          friendlyMessage = 'Your session has expired. Please log in again.';
+        } else if (error.response?.status === 429) {
+          friendlyMessage = 'You are sending too many requests. Please wait a moment and try again.';
+        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          friendlyMessage = 'The request timed out. The agent might be busy, please try again.';
+        } else if (!error.response && error.request) {
+          friendlyMessage = "I'm having trouble reaching the server. Please check your internet connection.";
+        }
+      } else if (error instanceof Error) {
+        errorMsg = error.message;
+        if (errorMsg === 'Query cannot be empty') {
+          friendlyMessage = 'Please enter a message before sending.';
+        }
       }
 
       return {
