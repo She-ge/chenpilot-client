@@ -14,6 +14,9 @@ import {
   ApiResponse,
   ChatMessage,
   Conversation,
+  LiquidityPool,
+  LiquidityStats,
+  LiquidityRequest
   StellarTransaction
 } from '@/types';
 import agentService from './agentService';
@@ -250,6 +253,29 @@ class ApiService {
     return response.data;
   }
 
+  async exportUserData(): Promise<Blob> {
+    const endpoints = ['/data-export', '/data/export', '/api/data-export'];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await this.api.get<Blob>(endpoint, {
+          responseType: 'blob',
+        });
+
+        if (response.status === 200 && response.data) {
+          return response.data;
+        }
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          continue; // try next endpoint
+        }
+        throw error;
+      }
+    }
+
+    throw new Error('User data export endpoint not found.');
+  }
+
   // Starknet account management
   async deployAccount(): Promise<ApiResponse<{ transactionHash: string; contractAddress: string }>> {
     const response = await this.api.post<ApiResponse<{ transactionHash: string; contractAddress: string }>>('/auth/starknet/deploy');
@@ -409,7 +435,7 @@ class ApiService {
       } else if (errorMsg.includes('network')) {
         friendlyMessage = "I'm having trouble connecting. Please check your internet connection and try again.";
       }
-      
+
       return {
         result: {
           success: false,
@@ -525,6 +551,12 @@ class ApiService {
 
   async getConversationStats(): Promise<ApiResponse<{ totalConversations: number; totalMessages: number; activeConversations: number }>> {
     const response = await this.api.get<ApiResponse<{ totalConversations: number; totalMessages: number; activeConversations: number }>>('/chat/stats');
+    return response.data;
+  }
+
+  // Liquidity Pool endpoints
+  async getLiquidityStats(request?: LiquidityRequest): Promise<ApiResponse<LiquidityStats>> {
+    const response = await this.api.post<ApiResponse<LiquidityStats>>('/liquidity', request || {});
     return response.data;
   }
 
