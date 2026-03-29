@@ -16,7 +16,7 @@ import {
   Conversation,
   LiquidityPool,
   LiquidityStats,
-  LiquidityRequest
+  LiquidityRequest,
   StellarTransaction
 } from '@/types';
 import agentService from './agentService';

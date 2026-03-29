@@ -431,3 +431,40 @@ export interface LiquidityRequest {
   sortBy?: 'liquidity' | 'volume' | 'apr';
   sortOrder?: 'asc' | 'desc';
 }
+
+// A/B Testing Types
+export interface ABTestMetrics {
+  latency: number;
+  cost: number;
+  accuracy: number;
+  score?: number;
+}
+
+export interface PromptComparisonData {
+  id: string;
+  name: string;
+  metrics: ABTestMetrics;
+  history?: {
+    timestamp: string;
+    metrics: ABTestMetrics;
+  }[];
+}
+
+export interface ABTestComparisonResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    prompt1: PromptComparisonData;
+    prompt2: PromptComparisonData;
+    comparisonResult: {
+      winner: string | null;
+      confidence: number;
+      improvements: {
+        latency: number;
+        cost: number;
+        accuracy: number;
+      };
+    };
+  };
+}
+
