@@ -203,6 +203,7 @@ export interface ChatMessage {
     asset?: string;
     requiresConfirmation?: boolean;
     executionTrace?: ExecutionTrace;
+    rawData?: any;
   };
 }
 

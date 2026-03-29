@@ -195,12 +195,20 @@ class ApiService {
 
   async logout(): Promise<void> {
     try {
-      await this.api.post('/auth/logout');
-    } catch {
-      // Even if logout fails on server, clear local token
-      console.warn('Logout request failed, clearing local token anyway');
+      // Send the request to invalidate the refresh token on the backend
+      // Using withCredentials: true ensures cookies (if used) are sent
+      await this.api.post('/auth/logout', {}, { withCredentials: true });
+    } catch (error) {
+      // Even if logout fails on server, clear local state
+      console.warn('Logout request failed, clearing local state anyway', error);
     } finally {
       this.clearToken();
+      // Purge all auth-related data from storage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('refresh_token'); // Clear refresh token if stored here
+        sessionStorage.clear(); // Clear session storage as well
+      }
     }
   }
 
@@ -391,7 +399,7 @@ class ApiService {
     }
   }
 
-  // Agent query - Enhanced with experimental agent integration
+  // Agent query - Optimized for backend integration
   async queryAgent(data: AgentQueryRequest): Promise<AgentQueryResponse> {
     // First try the experimental agent service
     try {
@@ -399,26 +407,36 @@ class ApiService {
         console.log('[ApiService] Using experimental agent service');
         return await agentService.queryAgent(data);
       }
-    } catch {
-      console.warn('[ApiService] Experimental agent service failed, falling back to backend');
+    } catch (error) {
+      console.warn('[ApiService] Experimental agent service failed, falling back to backend:', error);
     }
 
     // Fallback to backend API (experimental backend)
     try {
+      if (!data.query || data.query.trim().length === 0) {
+        throw new Error('Query cannot be empty');
+      }
+
+      console.log('[ApiService] Querying backend /query endpoint');
       const response = await this.api.post('/query', data);
       
-      // The experimental backend returns { result: ... } format
+      // The system returns response.data directly or wrapped in { result: ... }
       if (response.data && response.data.result) {
         return {
-          result: response.data.result
+          result: {
+            success: response.data.result.success ?? true,
+            data: response.data.result.data || 'Success',
+            error: response.data.result.error,
+            executionTrace: response.data.result.executionTrace
+          }
         };
       }
       
-      // Fallback if response format is unexpected
+      // Handle the case where the backend returns the result directly
       return {
         result: {
           success: true,
-          data: response.data || 'Query processed successfully',
+          data: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
           error: undefined
         }
       };
