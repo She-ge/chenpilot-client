@@ -195,12 +195,20 @@ class ApiService {
 
   async logout(): Promise<void> {
     try {
-      await this.api.post('/auth/logout');
-    } catch {
-      // Even if logout fails on server, clear local token
-      console.warn('Logout request failed, clearing local token anyway');
+      // Send the request to invalidate the refresh token on the backend
+      // Using withCredentials: true ensures cookies (if used) are sent
+      await this.api.post('/auth/logout', {}, { withCredentials: true });
+    } catch (error) {
+      // Even if logout fails on server, clear local state
+      console.warn('Logout request failed, clearing local state anyway', error);
     } finally {
       this.clearToken();
+      // Purge all auth-related data from storage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('refresh_token'); // Clear refresh token if stored here
+        sessionStorage.clear(); // Clear session storage as well
+      }
     }
   }
 

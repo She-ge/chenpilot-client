@@ -69,10 +69,12 @@ export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
-      await apiService.logout();
+      // Import authService here to avoid circular dependency
+      const { authService } = await import('@/services/auth.service');
+      await authService.logout();
     } catch (error: any) {
-      // Even if logout fails on server, clear local state
-      console.error('Logout error:', error);
+      // Even if logout fails, we want to clear local state
+      console.error('Logout thunk error:', error);
     }
   }
 );
