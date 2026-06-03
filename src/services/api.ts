@@ -16,8 +16,12 @@ import {
   Conversation,
   LiquidityPool,
   LiquidityStats,
-  LiquidityRequest
-  StellarTransaction
+  LiquidityRequest,
+  StellarTransaction,
+  AuditLogEntry,
+  AuditLogsQueryParams,
+  AuditLogsResponse,
+  AuditLogStats
 } from '@/types';
 import agentService from './agentService';
 import { tokenRefreshService } from './tokenRefreshService';
@@ -575,6 +579,43 @@ class ApiService {
   // Liquidity Pool endpoints
   async getLiquidityStats(request?: LiquidityRequest): Promise<ApiResponse<LiquidityStats>> {
     const response = await this.api.post<ApiResponse<LiquidityStats>>('/liquidity', request || {});
+    return response.data;
+  }
+
+  // === Audit Log Endpoints ===
+
+  /**
+   * Fetch audit logs with filtering, pagination, and search
+   */
+  async getAuditLogs(params: AuditLogsQueryParams = {}): Promise<AuditLogsResponse> {
+    const response = await this.api.get<AuditLogsResponse>('/audit', { params });
+    return response.data;
+  }
+
+  /**
+   * Fetch a single audit log entry by ID
+   */
+  async getAuditLogById(id: string): Promise<ApiResponse<AuditLogEntry>> {
+    const response = await this.api.get<ApiResponse<AuditLogEntry>>(`/audit/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Fetch aggregated audit log statistics
+   */
+  async getAuditLogStats(): Promise<ApiResponse<AuditLogStats>> {
+    const response = await this.api.get<ApiResponse<AuditLogStats>>('/audit/stats');
+    return response.data;
+  }
+
+  /**
+   * Export audit logs (download as CSV/JSON)
+   */
+  async exportAuditLogs(params: AuditLogsQueryParams = {}): Promise<Blob> {
+    const response = await this.api.get<Blob>('/audit/export', {
+      params,
+      responseType: 'blob',
+    });
     return response.data;
   }
 
